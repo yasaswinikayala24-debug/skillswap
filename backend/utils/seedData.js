@@ -241,16 +241,20 @@ const seedAllData = async () => {
     for (const uData of usersData) {
       let u = await User.findOne({ email: uData.email });
       if (!u) {
-        u = await User.create(uData);
+        u = new User(uData);
+        await u.save();
       } else {
-        u.skillsToTeach = uData.skillsToTeach;
-        u.skillsToLearn = uData.skillsToLearn;
+        u.name = uData.name;
         u.bio = uData.bio;
         u.profileImage = uData.profileImage;
+        u.skillsToTeach = uData.skillsToTeach;
+        u.skillsToLearn = uData.skillsToLearn;
+        u.password = uData.password; // Triggers pre('save') password hashing
         await u.save();
       }
       usersMap[u.email] = u;
     }
+
 
     console.log(`✓ Users created & skill portfolios populated (${usersData.length} users ready)`);
 

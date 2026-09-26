@@ -42,18 +42,23 @@ app.use(async (req, res, next) => {
   try {
     await connectDB();
     if (!isSeeded) {
-      await seedInitialSkills();
+      try {
+        await seedInitialSkills();
+      } catch (seedErr) {
+        console.warn('Initial skill seeding warning:', seedErr.message);
+      }
       isSeeded = true;
     }
     next();
   } catch (err) {
-    console.error('Database Connection Middleware Error:', err.message);
+    console.error('Database Connection Middleware Error:', err);
     res.status(500).json({
       success: false,
-      message: 'Database connection failed. Please check MONGODB_URI environment variable.'
+      message: err.message || 'Database connection failed.'
     });
   }
 });
+
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
