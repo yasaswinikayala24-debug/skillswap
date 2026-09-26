@@ -1,18 +1,34 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { exchangeAPI } from '../services/api';
 import useAuth from '../hooks/useAuth';
 import RequestStatusBadge from '../components/RequestStatusBadge';
 import LoadingSpinner from '../components/LoadingSpinner';
 import Alert from '../components/Alert';
-import { Repeat, GraduationCap, BookOpen, User, ExternalLink, Sparkles } from 'lucide-react';
+import ScheduleSessionModal from '../components/ScheduleSessionModal';
+import {
+  Repeat,
+  GraduationCap,
+  BookOpen,
+  User,
+  ExternalLink,
+  Sparkles,
+  MessageSquare,
+  Calendar,
+  Clock
+} from 'lucide-react';
 
 const ActiveExchanges = () => {
   const { token, user: currentUser } = useAuth();
+  const navigate = useNavigate();
 
   const [exchanges, setExchanges] = useState([]);
   const [loading, setLoading] = useState(true);
   const [errorMsg, setErrorMsg] = useState('');
+
+  // Modal State
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedExchangeForModal, setSelectedExchangeForModal] = useState(null);
 
   useEffect(() => {
     fetchActiveExchanges();
@@ -39,7 +55,7 @@ const ActiveExchanges = () => {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-10">
       {/* Header Banner */}
-      <div className="relative rounded-3xl bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 p-8 sm:p-10 border border-slate-800 shadow-2xl overflow-hidden">
+      <div className="relative rounded-3xl bg-gradient-to-r from-slate-900 via-purple-950 to-slate-900 p-8 sm:p-10 border border-slate-800 shadow-2xl overflow-hidden">
         <div className="absolute top-0 right-0 w-80 h-80 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none"></div>
 
         <div className="relative z-10 max-w-2xl">
@@ -51,7 +67,7 @@ const ActiveExchanges = () => {
             My Active Skill Exchanges
           </h1>
           <p className="mt-2 text-slate-300 text-base">
-            Your accepted peer-to-peer exchange partnerships. Coordinate sessions and grow your knowledge together!
+            Your accepted peer-to-peer exchange partnerships. Start real-time chat, schedule sessions, and track learning!
           </p>
         </div>
       </div>
@@ -85,7 +101,7 @@ const ActiveExchanges = () => {
                       </div>
                       <div>
                         <h3 className="font-bold text-white text-base">{partner?.name || 'Swapper'}</h3>
-                        <p className="text-xs text-indigo-400">{partner?.role || 'Student'}</p>
+                        <p className="text-xs text-purple-400">{partner?.role || 'Student'}</p>
                       </div>
                     </div>
                     <RequestStatusBadge status="accepted" />
@@ -115,15 +131,49 @@ const ActiveExchanges = () => {
                   </div>
                 </div>
 
-                {/* Footer Action */}
-                <div className="pt-4 border-t border-slate-800 flex justify-end">
-                  <Link
-                    to={`/user/${partner?._id}`}
-                    className="inline-flex items-center space-x-1.5 px-4 py-2 rounded-xl bg-emerald-600/20 hover:bg-emerald-600 text-emerald-300 hover:text-white font-semibold text-xs border border-emerald-500/30 transition-all"
-                  >
-                    <span>View Partner Profile</span>
-                    <ExternalLink className="w-3.5 h-3.5" />
-                  </Link>
+                {/* Footer Action Buttons: Chat, Schedule Session, View Sessions */}
+                <div className="pt-4 border-t border-slate-800 space-y-2">
+                  <div className="grid grid-cols-2 gap-2">
+                    <button
+                      onClick={() => navigate('/chat')}
+                      className="flex items-center justify-center space-x-1.5 px-3 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-semibold text-xs shadow-md transition-all"
+                    >
+                      <MessageSquare className="w-3.5 h-3.5" />
+                      <span>Chat</span>
+                    </button>
+
+                    <button
+                      onClick={() => {
+                        setSelectedExchangeForModal({
+                          _id: ex._id,
+                          partnerName: partner?.name
+                        });
+                        setIsModalOpen(true);
+                      }}
+                      className="flex items-center justify-center space-x-1.5 px-3 py-2 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/30 font-semibold text-xs transition-all"
+                    >
+                      <Calendar className="w-3.5 h-3.5" />
+                      <span>Schedule</span>
+                    </button>
+                  </div>
+
+                  <div className="flex items-center justify-between pt-1">
+                    <Link
+                      to="/my-sessions"
+                      className="text-[11px] font-semibold text-slate-400 hover:text-slate-200 flex items-center space-x-1"
+                    >
+                      <Clock className="w-3 h-3 text-amber-400" />
+                      <span>View Sessions</span>
+                    </Link>
+
+                    <Link
+                      to={`/user/${partner?._id}`}
+                      className="text-[11px] font-semibold text-emerald-400 hover:text-emerald-300 flex items-center space-x-1"
+                    >
+                      <span>Profile</span>
+                      <ExternalLink className="w-3 h-3" />
+                    </Link>
+                  </div>
                 </div>
               </div>
             );
@@ -138,13 +188,23 @@ const ActiveExchanges = () => {
           </p>
           <Link
             to="/matches"
-            className="inline-flex items-center space-x-2 px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs shadow-lg shadow-indigo-600/30"
+            className="inline-flex items-center space-x-2 px-5 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs shadow-lg shadow-purple-600/30"
           >
             <Sparkles className="w-4 h-4" />
             <span>Find Matches</span>
           </Link>
         </div>
       )}
+
+      {/* Schedule Session Modal */}
+      <ScheduleSessionModal
+        isOpen={isModalOpen}
+        onClose={() => {
+          setIsModalOpen(false);
+          setSelectedExchangeForModal(null);
+        }}
+        exchangeRequest={selectedExchangeForModal}
+      />
     </div>
   );
 };

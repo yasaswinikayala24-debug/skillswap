@@ -1,6 +1,9 @@
 const ExchangeRequest = require('../models/ExchangeRequest');
 const User = require('../models/User');
 const Skill = require('../models/Skill');
+const Conversation = require('../models/Conversation');
+const Notification = require('../models/Notification');
+const { emitToUser } = require('../utils/socket');
 
 // @desc    Send a skill exchange request
 // @route   POST /api/exchange-requests
@@ -82,6 +85,21 @@ const sendExchangeRequest = async (req, res, next) => {
       .populate('receiver', 'name bio profileImage role')
       .populate('offeredSkill', 'name category')
       .populate('requestedSkill', 'name category');
+
+    // Create Notification for receiver
+    const notification = await Notification.create({
+      recipient: receiverId,
+      sender: req.user._id,
+      type: 'exchange_request',
+      title: 'New Skill Exchange Request',
+      message: `${req.user.name} sent you a skill exchange request!`,
+      relatedId: exchangeRequest._id
+    });
+
+    emitToUser(receiverId, 'notification', {
+      ...notification.toObject(),
+      sender: { _id: req.user._id, name: req.user.name, profileImage: req.user.profileImage }
+    });
 
     res.status(201).json({
       success: true,
@@ -176,6 +194,32 @@ const acceptExchangeRequest = async (req, res, next) => {
     request.status = 'accepted';
     await request.save();
 
+    // Create Conversation if not existing
+    let conversation = await Conversation.findOne({ exchangeRequest: request._id });
+    if (!conversation) {
+      conversation = await Conversation.create({
+        participants: [request.sender, request.receiver],
+        exchangeRequest: request._id,
+        lastMessage: 'Skill exchange request accepted! Start chatting here.',
+        lastMessageAt: Date.now()
+      });
+    }
+
+    // Create Notification for sender
+    const notification = await Notification.create({
+      recipient: request.sender,
+      sender: req.user._id,
+      type: 'request_accepted',
+      title: 'Exchange Request Accepted!',
+      message: `${req.user.name} accepted your skill exchange request!`,
+      relatedId: request._id
+    });
+
+    emitToUser(request.sender, 'notification', {
+      ...notification.toObject(),
+      sender: { _id: req.user._id, name: req.user.name, profileImage: req.user.profileImage }
+    });
+
     const updated = await ExchangeRequest.findById(id)
       .populate('sender', 'name bio profileImage role')
       .populate('receiver', 'name bio profileImage role')
@@ -185,7 +229,8 @@ const acceptExchangeRequest = async (req, res, next) => {
     res.status(200).json({
       success: true,
       message: 'Skill exchange request accepted!',
-      data: updated
+      data: updated,
+      conversationId: conversation._id
     });
   } catch (error) {
     next(error);
@@ -213,6 +258,20 @@ const rejectExchangeRequest = async (req, res, next) => {
 
     request.status = 'rejected';
     await request.save();
+
+    const notification = await Notification.create({
+      recipient: request.sender,
+      sender: req.user._id,
+      type: 'request_rejected',
+      title: 'Exchange Request Update',
+      message: `${req.user.name} declined the exchange request.`,
+      relatedId: request._id
+    });
+
+    emitToUser(request.sender, 'notification', {
+      ...notification.toObject(),
+      sender: { _id: req.user._id, name: req.user.name, profileImage: req.user.profileImage }
+    });
 
     res.status(200).json({
       success: true,

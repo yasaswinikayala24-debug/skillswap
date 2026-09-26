@@ -18,6 +18,10 @@ import Matches from './pages/Matches';
 import MatchDetails from './pages/MatchDetails';
 import ExchangeRequests from './pages/ExchangeRequests';
 import ActiveExchanges from './pages/ActiveExchanges';
+
+import ChatPage from './pages/ChatPage';
+import MySessions from './pages/MySessions';
+import NotificationsPage from './pages/NotificationsPage';
 import NotFoundPage from './pages/NotFoundPage';
 
 function App() {
@@ -99,10 +103,52 @@ function App() {
               }
             />
             <Route
+              path="/requests"
+              element={
+                <ProtectedRoute>
+                  <ExchangeRequests />
+                </ProtectedRoute>
+              }
+            />
+            <Route
               path="/my-exchanges"
               element={
                 <ProtectedRoute>
                   <ActiveExchanges />
+                </ProtectedRoute>
+              }
+            />
+
+            {/* Phase 4 Protected Communication & Session Routes */}
+            <Route
+              path="/chat"
+              element={
+                <ProtectedRoute>
+                  <ChatPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/my-sessions"
+              element={
+                <ProtectedRoute>
+                  <MySessions />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/sessions"
+              element={
+                <ProtectedRoute>
+                  <MySessions />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/notifications"
+              element={
+                <ProtectedRoute>
+                  <NotificationsPage />
                 </ProtectedRoute>
               }
             />

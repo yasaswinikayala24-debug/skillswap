@@ -1,4 +1,4 @@
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+const API_URL = import.meta.env.VITE_API_URL || '/api';
 
 /**
  * Generic API fetch helper with token handling and clean error formatting
@@ -111,10 +111,40 @@ export const exchangeAPI = {
   getActiveExchanges: (token) => request('/exchange-requests/active', 'GET', null, token),
 };
 
+// Phase 4 Conversation & Message APIs
+export const conversationAPI = {
+  getConversations: (token) => request('/conversations', 'GET', null, token),
+  getById: (id, token) => request(`/conversations/${id}`, 'GET', null, token),
+  getMessages: (id, page = 1, limit = 30, token) => request(`/conversations/${id}/messages?page=${page}&limit=${limit}`, 'GET', null, token),
+  sendMessage: (id, text, token) => request(`/conversations/${id}/messages`, 'POST', { text }, token),
+  markMessageRead: (messageId, token) => request(`/messages/${messageId}/read`, 'PUT', null, token),
+};
+
+// Phase 4 Session APIs
+export const sessionAPI = {
+  getSessions: (token) => request('/sessions', 'GET', null, token),
+  getById: (id, token) => request(`/sessions/${id}`, 'GET', null, token),
+  createSession: (sessionData, token) => request('/sessions', 'POST', sessionData, token),
+  updateSession: (id, sessionData, token) => request(`/sessions/${id}`, 'PUT', sessionData, token),
+  cancelSession: (id, token) => request(`/sessions/${id}/cancel`, 'PUT', null, token),
+  completeSession: (id, token) => request(`/sessions/${id}/complete`, 'PUT', null, token),
+};
+
+// Phase 4 Notification APIs
+export const notificationAPI = {
+  getNotifications: (page = 1, limit = 20, token) => request(`/notifications?page=${page}&limit=${limit}`, 'GET', null, token),
+  getUnreadCount: (token) => request('/notifications/unread-count', 'GET', null, token),
+  markRead: (id, token) => request(`/notifications/${id}/read`, 'PUT', null, token),
+  markAllRead: (token) => request('/notifications/read-all', 'PUT', null, token),
+};
+
 export default {
   auth: authAPI,
   user: userAPI,
   skill: skillAPI,
   match: matchAPI,
   exchange: exchangeAPI,
+  conversation: conversationAPI,
+  session: sessionAPI,
+  notification: notificationAPI,
 };

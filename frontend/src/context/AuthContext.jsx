@@ -1,5 +1,6 @@
-import React, { createContext, useState, useEffect } from 'react';
-import { authAPI, userAPI } from '../services/api';
+import React, { createContext, useState, useEffect, useCallback } from 'react';
+import { authAPI, userAPI, notificationAPI, exchangeAPI, conversationAPI } from '../services/api';
+import socketService from '../services/socketService';
 
 export const AuthContext = createContext(null);
 
@@ -9,7 +10,66 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [authError, setAuthError] = useState(null);
 
-  // Load user profile on initial app render or token change
+  // Unread Counts for Navbar Badges
+  const [unreadNotificationsCount, setUnreadNotificationsCount] = useState(0);
+  const [unreadMessagesCount, setUnreadMessagesCount] = useState(0);
+  const [pendingRequestsCount, setPendingRequestsCount] = useState(0);
+
+  const fetchBadgeCounts = useCallback(async (authToken) => {
+    const t = authToken || token || localStorage.getItem('token');
+    if (!t) return;
+
+    try {
+      const [notifRes, reqRes, convRes] = await Promise.all([
+        notificationAPI.getUnreadCount(t).catch(() => ({ count: 0 })),
+        exchangeAPI.getPendingCount(t).catch(() => ({ count: 0 })),
+        conversationAPI.getConversations(t).catch(() => ({ data: [] }))
+      ]);
+
+      if (notifRes.count !== undefined) setUnreadNotificationsCount(notifRes.count);
+      if (reqRes.count !== undefined) setPendingRequestsCount(reqRes.count);
+
+      if (convRes.data && Array.isArray(convRes.data)) {
+        const totalUnreadMsgs = convRes.data.reduce((acc, conv) => acc + (conv.unreadCount || 0), 0);
+        setUnreadMessagesCount(totalUnreadMsgs);
+      }
+    } catch (err) {
+      console.warn('Failed to fetch badge counts:', err.message);
+    }
+  }, [token]);
+
+  // Connect socket and listen for real-time notifications/messages
+  useEffect(() => {
+    if (user && token) {
+      const socket = socketService.connect();
+
+      if (socket) {
+        fetchBadgeCounts(token);
+
+        const handleSocketNotification = () => {
+          setUnreadNotificationsCount((prev) => prev + 1);
+          fetchBadgeCounts(token);
+        };
+
+        const handleSocketMessage = () => {
+          setUnreadMessagesCount((prev) => prev + 1);
+          fetchBadgeCounts(token);
+        };
+
+        socketService.on('notification', handleSocketNotification);
+        socketService.on('receive_message', handleSocketMessage);
+
+        return () => {
+          socketService.off('notification', handleSocketNotification);
+          socketService.off('receive_message', handleSocketMessage);
+        };
+      }
+    } else {
+      socketService.disconnect();
+    }
+  }, [user, token, fetchBadgeCounts]);
+
+  // Load user profile on initial app render
   useEffect(() => {
     const initializeAuth = async () => {
       const storedToken = localStorage.getItem('token');
@@ -20,7 +80,6 @@ export const AuthProvider = ({ children }) => {
             setUser(response.data);
             setToken(storedToken);
           } else {
-            // Token invalid or user not found
             logout();
           }
         } catch (error) {
@@ -67,12 +126,16 @@ export const AuthProvider = ({ children }) => {
     try {
       await authAPI.logout();
     } catch (e) {
-      // Ignore logout API failure
+      // Ignore API logout error
     } finally {
+      socketService.disconnect();
       localStorage.removeItem('token');
       setToken(null);
       setUser(null);
       setAuthError(null);
+      setUnreadNotificationsCount(0);
+      setUnreadMessagesCount(0);
+      setPendingRequestsCount(0);
     }
   };
 
@@ -94,6 +157,10 @@ export const AuthProvider = ({ children }) => {
     isAuthenticated: !!user && !!token,
     loading,
     authError,
+    unreadNotificationsCount,
+    unreadMessagesCount,
+    pendingRequestsCount,
+    fetchBadgeCounts,
     register,
     login,
     logout,

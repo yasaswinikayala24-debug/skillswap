@@ -9,7 +9,7 @@ SkillSwap is a peer-to-peer skill exchange platform designed to connect individu
 ### Phase 1: Foundation & Authentication
 * **Modern Landing Page**: High-converting, responsive landing page with Hero, How It Works, Why SkillSwap, Popular Skills, Call to Action, and Footer.
 * **User Registration & Authentication**: Client-side validation, duplicate email detection, password hashing (`bcryptjs`), and JWT authentication.
-* **Protected Routing**: Navigation guards ensuring private pages (`/dashboard`, `/profile`, `/my-skills`, `/matches`, `/exchange-requests`, `/my-exchanges`) require authentication.
+* **Protected Routing**: Navigation guards ensuring private pages (`/dashboard`, `/profile`, `/my-skills`, `/matches`, `/exchange-requests`, `/my-exchanges`, `/chat`, `/my-sessions`, `/notifications`) require authentication.
 * **User Profile**: Profile page allowing users to view & update Name, Bio, and Profile Avatar URL with MongoDB persistence.
 
 ### Phase 2: Skill Management & Skill Discovery
@@ -38,6 +38,23 @@ SkillSwap is a peer-to-peer skill exchange platform designed to connect individu
   * Dashboard displays live metrics for `Potential Matches`, `Pending Requests`, and `Active Exchanges`.
   * Navbar displays dynamic pending request badge (e.g. `Requests (3)`).
 
+### Phase 4: Real-Time Communication, Sessions & Notifications
+* **Real-Time 1-on-1 Chat (`/chat`)**:
+  * **Access Control**: Communication is strictly enabled between users who have an **accepted** exchange request.
+  * **Persistent Messaging**: Messages stored in MongoDB with full history, pagination, and real-time delivery via Socket.IO.
+  * **Online/Offline Status**: Live connection status dots and indicators.
+  * **Typing Indicators**: Real-time debounced typing alerts (`Rahul is typing...`).
+  * **Read/Unread Status**: Automatic and manual message read confirmation with checkmarks.
+* **Skill Exchange Sessions (`/my-sessions`)**:
+  * **Session Scheduling**: Schedule 1-on-1 learning sessions with duration options (`30m`, `45m`, `60m`, `90m`, `120m`).
+  * **Session Operations**: Reschedule, Cancel, or Mark Completed.
+  * **Session Validation**: Prevents scheduling in the past.
+  * **Tabbed Views**: Organized into `Upcoming`, `Completed`, and `Cancelled` tabs.
+* **Notification System (`/notifications`)**:
+  * **Real-Time Socket Notifications**: Instant alerts when receiving exchange requests, request acceptances/rejections, new chat messages, and session schedules.
+  * **Notification Persistence**: Alerts saved to MongoDB and viewable in Notification Center with "Mark all as read" capability.
+* **Navbar Badges**: Dynamic badges for `Requests`, `Messages`, and `Notifications`.
+
 ---
 
 ## 📐 Matching Algorithm Explanation
@@ -58,104 +75,32 @@ The matching utility (`backend/utils/matchingAlgorithm.js`) computes determinist
 
 ### Frontend
 * **Framework**: React.js (via Vite)
-* **Styling**: Tailwind CSS v4 + Glassmorphic UI design system
-* **Routing**: React Router DOM (v6)
+* **Styling**: Vanilla CSS & Tailwind CSS v4
 * **Icons**: Lucide React
+* **Routing**: React Router DOM v7
+* **Real-Time Client**: Socket.IO Client v4
 
 ### Backend
-* **Runtime**: Node.js
-* **Framework**: Express.js REST API
-* **Database**: MongoDB (via Mongoose ORM)
-* **Authentication**: JSON Web Tokens (`jsonwebtoken`) & Password Hashing (`bcryptjs`)
+* **Server**: Node.js & Express.js
+* **Database**: MongoDB & Mongoose
+* **Real-Time WebSockets**: Socket.IO v4
+* **Authentication**: JSON Web Tokens (`jsonwebtoken`) & `bcryptjs`
 
 ---
 
-## 📂 Project Structure
+## 💾 Database Schema Overview
 
-```text
-SkillSwap/
-│
-├── frontend/
-│   ├── src/
-│   │   ├── components/
-│   │   │   ├── AddSkillModal.jsx
-│   │   │   ├── Alert.jsx
-│   │   │   ├── ConfirmDeleteModal.jsx
-│   │   │   ├── EditSkillModal.jsx
-│   │   │   ├── ExchangeRequestModal.jsx
-│   │   │   ├── Footer.jsx
-│   │   │   ├── LoadingSpinner.jsx
-│   │   │   ├── MatchCard.jsx
-│   │   │   ├── MetricCard.jsx
-│   │   │   ├── Navbar.jsx
-│   │   │   ├── ProtectedRoute.jsx
-│   │   │   ├── PublicRoute.jsx
-│   │   │   ├── RequestStatusBadge.jsx
-│   │   │   ├── SkillBadge.jsx
-│   │   │   ├── SkillCard.jsx
-│   │   │   └── UserSkillCard.jsx
-│   │   ├── pages/
-│   │   │   ├── ActiveExchanges.jsx
-│   │   │   ├── DashboardPage.jsx
-│   │   │   ├── ExchangeRequests.jsx
-│   │   │   ├── FindPeople.jsx
-│   │   │   ├── LandingPage.jsx
-│   │   │   ├── LoginPage.jsx
-│   │   │   ├── MatchDetails.jsx
-│   │   │   ├── Matches.jsx
-│   │   │   ├── MySkills.jsx
-│   │   │   ├── NotFoundPage.jsx
-│   │   │   ├── ProfilePage.jsx
-│   │   │   ├── PublicUserProfile.jsx
-│   │   │   ├── RegisterPage.jsx
-│   │   │   └── Skills.jsx
-│   │   ├── services/
-│   │   │   └── api.js
-│   │   ├── context/
-│   │   │   └── AuthContext.jsx
-│   │   └── App.jsx
-│   ├── package.json
-│   └── vite.config.js
-│
-├── backend/
-│   ├── config/
-│   │   └── db.js
-│   ├── controllers/
-│   │   ├── authController.js
-│   │   ├── exchangeRequestController.js
-│   │   ├── matchController.js
-│   │   ├── skillController.js
-│   │   ├── userController.js
-│   │   └── userSkillController.js
-│   ├── middleware/
-│   │   ├── authMiddleware.js
-│   │   └── errorMiddleware.js
-│   ├── models/
-│   │   ├── ExchangeRequest.js
-│   │   ├── Skill.js
-│   │   └── User.js
-│   ├── routes/
-│   │   ├── authRoutes.js
-│   │   ├── exchangeRequestRoutes.js
-│   │   ├── matchRoutes.js
-│   │   ├── skillRoutes.js
-│   │   └── userRoutes.js
-│   ├── utils/
-│   │   ├── generateToken.js
-│   │   ├── matchingAlgorithm.js
-│   │   └── seedSkills.js
-│   ├── server.js
-│   └── package.json
-│
-├── api/
-│   └── index.js
-├── vercel.json
-└── README.md
-```
+* **`User`**: `name`, `email`, `password`, `bio`, `profileImage`, `role`, `skillsToTeach[]`, `skillsToLearn[]`.
+* **`Skill`**: `name`, `category`, `description`.
+* **`ExchangeRequest`**: `sender`, `receiver`, `offeredSkill`, `requestedSkill`, `message`, `status` (`pending`, `accepted`, `rejected`, `cancelled`).
+* **`Conversation`**: `participants[]`, `exchangeRequest`, `lastMessage`, `lastMessageAt`.
+* **`Message`**: `conversation`, `sender`, `receiver`, `text`, `read`.
+* **`Session`**: `exchangeRequest`, `organizer`, `participant`, `title`, `description`, `scheduledAt`, `duration`, `status` (`scheduled`, `completed`, `cancelled`).
+* **`Notification`**: `recipient`, `sender`, `type` (`exchange_request`, `request_accepted`, `request_rejected`, `new_message`, `session_created`, `session_updated`, `session_cancelled`), `title`, `message`, `relatedId`, `read`.
 
 ---
 
-## 📡 Complete REST API Reference
+## 🔌 API Endpoints Reference
 
 ### Base URL: `/api`
 
@@ -183,14 +128,12 @@ SkillSwap/
 | `PUT` | `/api/users/me/skills/learn/:skillId` | Private | Update learning skill level |
 | `DELETE` | `/api/users/me/skills/teach/:skillId` | Private | Delete teaching skill |
 | `DELETE` | `/api/users/me/skills/learn/:skillId` | Private | Delete learning skill |
-| `GET` | `/api/users/search` | Public | Search swappers by skill or name |
-| `GET` | `/api/users/:id` | Public | View public user profile |
 
 #### Smart Matching & Exchange Requests (Phase 3)
 | Method | Endpoint | Protection | Description |
 | :--- | :--- | :--- | :--- |
 | `GET` | `/api/matches` | Private | Get recommended matches sorted by match percentage |
-| `GET` | `/api/matches/:userId` | Private | Get detailed match breakdown between current & target user |
+| `GET` | `/api/matches/:userId` | Private | Get detailed match breakdown |
 | `POST` | `/api/exchange-requests` | Private | Send a new skill exchange request |
 | `GET` | `/api/exchange-requests/received` | Private | List received exchange requests |
 | `GET` | `/api/exchange-requests/sent` | Private | List sent exchange requests |
@@ -199,6 +142,42 @@ SkillSwap/
 | `PUT` | `/api/exchange-requests/:id/reject` | Private | Reject an exchange request |
 | `PUT` | `/api/exchange-requests/:id/cancel` | Private | Cancel a sent request |
 | `GET` | `/api/exchange-requests/active` | Private | List accepted active skill exchanges |
+
+#### Real-Time Chat, Sessions & Notifications (Phase 4)
+| Method | Endpoint | Protection | Description |
+| :--- | :--- | :--- | :--- |
+| `GET` | `/api/conversations` | Private | List authenticated user conversations |
+| `GET` | `/api/conversations/:id` | Private | Get single conversation details |
+| `GET` | `/api/conversations/:id/messages` | Private | Get conversation messages with pagination |
+| `POST` | `/api/conversations/:id/messages` | Private | Send message in conversation |
+| `PUT` | `/api/messages/:id/read` | Private | Mark message as read |
+| `POST` | `/api/sessions` | Private | Schedule a new skill exchange session |
+| `GET` | `/api/sessions` | Private | List user sessions |
+| `GET` | `/api/sessions/:id` | Private | Get single session details |
+| `PUT` | `/api/sessions/:id` | Private | Reschedule a session |
+| `PUT` | `/api/sessions/:id/cancel` | Private | Cancel a session |
+| `PUT` | `/api/sessions/:id/complete` | Private | Mark session as completed |
+| `GET` | `/api/notifications` | Private | Get user notifications with pagination |
+| `GET` | `/api/notifications/unread-count` | Private | Get count of unread notifications |
+| `PUT` | `/api/notifications/:id/read` | Private | Mark a notification as read |
+| `PUT` | `/api/notifications/read-all` | Private | Mark all user notifications as read |
+
+---
+
+## ⚡ Socket.IO Events Reference
+
+| Event Name | Direction | Payload | Description |
+| :--- | :--- | :--- | :--- |
+| `connection` | Client → Server | Auth Token | Authenticate socket connection |
+| `user_online` | Server → Client | `{ userId, status }` | Broadcast user online status |
+| `user_offline` | Server → Client | `{ userId, status }` | Broadcast user offline status |
+| `join_conversation` | Client → Server | `{ conversationId }` | Join specific chat room |
+| `leave_conversation` | Client → Server | `{ conversationId }` | Leave chat room |
+| `typing_start` | Client → Server → Client | `{ conversationId, name }` | Relays typing indicator |
+| `typing_stop` | Client → Server → Client | `{ conversationId }` | Relays typing stop |
+| `receive_message` | Server → Client | `Message` Object | Real-time chat message delivery |
+| `message_read` | Server → Client | `{ messageId, conversationId }` | Real-time read checkmark update |
+| `notification` | Server → Client | `Notification` Object | Real-time alert delivery |
 
 ---
 
@@ -209,7 +188,7 @@ SkillSwap/
 cd backend
 npm run dev
 ```
-> Server running at `http://localhost:5000`
+> Server running at `http://localhost:5000` (Socket.IO enabled)
 
 ### Run Frontend Development Client
 ```bash
