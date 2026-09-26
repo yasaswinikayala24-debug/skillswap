@@ -1,7 +1,7 @@
-const API_URL = import.meta.env.VITE_API_URL || '/api';
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
 /**
- * Generic API fetch helper with token handling and standardized error parsing
+ * Generic API fetch helper with token handling and robust error parsing
  */
 const request = async (endpoint, method = 'GET', body = null, token = null) => {
   const headers = {
@@ -24,7 +24,15 @@ const request = async (endpoint, method = 'GET', body = null, token = null) => {
 
   try {
     const response = await fetch(`${API_URL}${endpoint}`, config);
-    const data = await response.json();
+
+    let data;
+    const contentType = response.headers.get('content-type');
+    if (contentType && contentType.includes('application/json')) {
+      data = await response.json();
+    } else {
+      const textResponse = await response.text();
+      throw new Error(textResponse || `Server returned status ${response.status}`);
+    }
 
     if (!response.ok) {
       throw new Error(data.message || `Request failed with status ${response.status}`);
