@@ -58,7 +58,7 @@ export const userAPI = {
   getProfile: (token) => request('/users/profile', 'GET', null, token),
   updateProfile: (profileData, token) => request('/users/profile', 'PUT', profileData, token),
   
-  // Phase 2 User Skill APIs
+  // User Skill APIs
   getMySkills: (token) => request('/users/me/skills', 'GET', null, token),
   addTeachingSkill: (skillData, token) => request('/users/me/skills/teach', 'POST', skillData, token),
   addLearningSkill: (skillData, token) => request('/users/me/skills/learn', 'POST', skillData, token),
@@ -84,8 +84,37 @@ export const skillAPI = {
   create: (skillData, token) => request('/skills', 'POST', skillData, token),
 };
 
+// Phase 3 Skill Matching APIs
+export const matchAPI = {
+  getMatches: (params = {}, token) => {
+    const queryParts = [];
+    if (params.minMatch) queryParts.push(`minMatch=${encodeURIComponent(params.minMatch)}`);
+    if (params.matchType) queryParts.push(`matchType=${encodeURIComponent(params.matchType)}`);
+    if (params.skill) queryParts.push(`skill=${encodeURIComponent(params.skill)}`);
+    if (params.category) queryParts.push(`category=${encodeURIComponent(params.category)}`);
+    if (params.sortBy) queryParts.push(`sortBy=${encodeURIComponent(params.sortBy)}`);
+    const queryString = queryParts.length ? `?${queryParts.join('&')}` : '';
+    return request(`/matches${queryString}`, 'GET', null, token);
+  },
+  getMatchDetails: (userId, token) => request(`/matches/${userId}`, 'GET', null, token),
+};
+
+// Phase 3 Exchange Request APIs
+export const exchangeAPI = {
+  sendRequest: (requestData, token) => request('/exchange-requests', 'POST', requestData, token),
+  getReceivedRequests: (token) => request('/exchange-requests/received', 'GET', null, token),
+  getSentRequests: (token) => request('/exchange-requests/sent', 'GET', null, token),
+  getPendingCount: (token) => request('/exchange-requests/pending-count', 'GET', null, token),
+  acceptRequest: (id, token) => request(`/exchange-requests/${id}/accept`, 'PUT', null, token),
+  rejectRequest: (id, token) => request(`/exchange-requests/${id}/reject`, 'PUT', null, token),
+  cancelRequest: (id, token) => request(`/exchange-requests/${id}/cancel`, 'PUT', null, token),
+  getActiveExchanges: (token) => request('/exchange-requests/active', 'GET', null, token),
+};
+
 export default {
   auth: authAPI,
   user: userAPI,
   skill: skillAPI,
+  match: matchAPI,
+  exchange: exchangeAPI,
 };

@@ -14,6 +14,10 @@ import MySkills from './pages/MySkills';
 import Skills from './pages/Skills';
 import FindPeople from './pages/FindPeople';
 import PublicUserProfile from './pages/PublicUserProfile';
+import Matches from './pages/Matches';
+import MatchDetails from './pages/MatchDetails';
+import ExchangeRequests from './pages/ExchangeRequests';
+import ActiveExchanges from './pages/ActiveExchanges';
 import NotFoundPage from './pages/NotFoundPage';
 
 function App() {
@@ -65,6 +69,40 @@ function App() {
               element={
                 <ProtectedRoute>
                   <MySkills />
+                </ProtectedRoute>
+              }
+            />
+
+            {/* Phase 3 Protected Match & Exchange Routes */}
+            <Route
+              path="/matches"
+              element={
+                <ProtectedRoute>
+                  <Matches />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/matches/:userId"
+              element={
+                <ProtectedRoute>
+                  <MatchDetails />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/exchange-requests"
+              element={
+                <ProtectedRoute>
+                  <ExchangeRequests />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/my-exchanges"
+              element={
+                <ProtectedRoute>
+                  <ActiveExchanges />
                 </ProtectedRoute>
               }
             />

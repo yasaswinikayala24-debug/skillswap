@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import useAuth from '../hooks/useAuth';
-import { userAPI } from '../services/api';
+import { userAPI, matchAPI, exchangeAPI } from '../services/api';
 import MetricCard from '../components/MetricCard';
 import {
   BookOpen,
@@ -12,7 +12,9 @@ import {
   Sparkles,
   ArrowRight,
   Compass,
-  Sliders
+  Sliders,
+  Inbox,
+  Repeat
 } from 'lucide-react';
 
 const DashboardPage = () => {
@@ -20,20 +22,40 @@ const DashboardPage = () => {
 
   const [teachCount, setTeachCount] = useState(0);
   const [learnCount, setLearnCount] = useState(0);
+  const [matchCount, setMatchCount] = useState(0);
+  const [pendingCount, setPendingCount] = useState(0);
+  const [activeExchangeCount, setActiveExchangeCount] = useState(0);
 
   useEffect(() => {
-    fetchSkillCounts();
+    if (token) {
+      fetchDashboardStats();
+    }
   }, [token]);
 
-  const fetchSkillCounts = async () => {
+  const fetchDashboardStats = async () => {
     try {
-      const res = await userAPI.getMySkills(token);
-      if (res.success && res.data) {
-        setTeachCount(res.data.skillsToTeach?.length || 0);
-        setLearnCount(res.data.skillsToLearn?.length || 0);
+      const [skillsRes, matchRes, pendingRes, activeRes] = await Promise.all([
+        userAPI.getMySkills(token),
+        matchAPI.getMatches({}, token),
+        exchangeAPI.getPendingCount(token),
+        exchangeAPI.getActiveExchanges(token)
+      ]);
+
+      if (skillsRes.success && skillsRes.data) {
+        setTeachCount(skillsRes.data.skillsToTeach?.length || 0);
+        setLearnCount(skillsRes.data.skillsToLearn?.length || 0);
+      }
+      if (matchRes.success && matchRes.data) {
+        setMatchCount(matchRes.data.length || 0);
+      }
+      if (pendingRes.success) {
+        setPendingCount(pendingRes.count || 0);
+      }
+      if (activeRes.success && activeRes.data) {
+        setActiveExchangeCount(activeRes.data.length || 0);
       }
     } catch (err) {
-      console.error('Error fetching dashboard skill counts:', err);
+      console.error('Error fetching dashboard stats:', err);
     }
   };
 
@@ -47,128 +69,148 @@ const DashboardPage = () => {
           <div>
             <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-xs font-semibold uppercase tracking-wider mb-3">
               <Sparkles className="w-3.5 h-3.5" />
-              <span>Phase 2 Skill Management</span>
+              <span>Phase 3 Skill Matching & Exchanges</span>
             </div>
             <h1 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">
               Welcome, {user?.name || 'Swapper'} 👋
             </h1>
             <p className="mt-2 text-slate-300 text-base max-w-xl">
-              Your SkillSwap Dashboard is live! Manage skills you can teach, discover skills to learn, and connect with swapper peers.
+              Discover smart skill matches, manage your exchange requests, and collaborate with your learning partners.
             </p>
           </div>
 
-          <div className="flex flex-col sm:flex-row gap-3">
+          <div className="flex flex-wrap gap-3">
             <Link
-              to="/my-skills"
-              className="inline-flex items-center justify-center space-x-2 px-6 py-3.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-sm shadow-xl shadow-indigo-600/30 transition-all hover:shadow-indigo-500/40 shrink-0"
+              to="/matches"
+              className="inline-flex items-center justify-center space-x-2 px-6 py-3.5 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold text-sm shadow-xl shadow-indigo-600/30 transition-all hover:shadow-indigo-500/40 shrink-0"
             >
-              <Sliders className="w-4 h-4" />
-              <span>Manage My Skills</span>
+              <Sparkles className="w-4 h-4" />
+              <span>Find Matches</span>
             </Link>
           </div>
         </div>
       </div>
 
       {/* Quick Action Navigation Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
         <Link
-          to="/my-skills"
-          className="p-5 rounded-2xl bg-slate-800/40 border border-slate-700/60 hover:border-indigo-500/50 transition-all flex items-center space-x-4 group"
+          to="/matches"
+          className="p-5 rounded-2xl bg-slate-800/40 border border-slate-700/60 hover:border-indigo-500/50 transition-all flex items-center space-x-3 group"
         >
           <div className="p-3 rounded-xl bg-indigo-500/20 text-indigo-400 group-hover:scale-110 transition-transform">
-            <GraduationCap className="w-6 h-6" />
+            <Sparkles className="w-5 h-5" />
           </div>
           <div>
-            <h3 className="font-bold text-white text-sm group-hover:text-indigo-300">My Skill Portfolio</h3>
-            <p className="text-xs text-slate-400">Add or edit your skills</p>
+            <h3 className="font-bold text-white text-xs group-hover:text-indigo-300">Find Matches</h3>
+            <p className="text-[11px] text-slate-400">{matchCount} available</p>
           </div>
         </Link>
 
         <Link
-          to="/skills"
-          className="p-5 rounded-2xl bg-slate-800/40 border border-slate-700/60 hover:border-indigo-500/50 transition-all flex items-center space-x-4 group"
+          to="/exchange-requests"
+          className="p-5 rounded-2xl bg-slate-800/40 border border-slate-700/60 hover:border-indigo-500/50 transition-all flex items-center space-x-3 group relative"
         >
           <div className="p-3 rounded-xl bg-purple-500/20 text-purple-400 group-hover:scale-110 transition-transform">
-            <Compass className="w-6 h-6" />
+            <Inbox className="w-5 h-5" />
           </div>
           <div>
-            <h3 className="font-bold text-white text-sm group-hover:text-purple-300">Explore Skills</h3>
-            <p className="text-xs text-slate-400">Browse categories & topics</p>
+            <h3 className="font-bold text-white text-xs group-hover:text-purple-300">Requests</h3>
+            <p className="text-[11px] text-slate-400">{pendingCount} pending</p>
           </div>
         </Link>
 
         <Link
-          to="/find-people"
-          className="p-5 rounded-2xl bg-slate-800/40 border border-slate-700/60 hover:border-indigo-500/50 transition-all flex items-center space-x-4 group"
+          to="/my-exchanges"
+          className="p-5 rounded-2xl bg-slate-800/40 border border-slate-700/60 hover:border-indigo-500/50 transition-all flex items-center space-x-3 group"
         >
           <div className="p-3 rounded-xl bg-emerald-500/20 text-emerald-400 group-hover:scale-110 transition-transform">
-            <Users className="w-6 h-6" />
+            <Repeat className="w-5 h-5" />
           </div>
           <div>
-            <h3 className="font-bold text-white text-sm group-hover:text-emerald-300">Find Swappers</h3>
-            <p className="text-xs text-slate-400">Search peers by skill</p>
+            <h3 className="font-bold text-white text-xs group-hover:text-emerald-300">My Exchanges</h3>
+            <p className="text-[11px] text-slate-400">{activeExchangeCount} active</p>
+          </div>
+        </Link>
+
+        <Link
+          to="/my-skills"
+          className="p-5 rounded-2xl bg-slate-800/40 border border-slate-700/60 hover:border-indigo-500/50 transition-all flex items-center space-x-3 group"
+        >
+          <div className="p-3 rounded-xl bg-amber-500/20 text-amber-400 group-hover:scale-110 transition-transform">
+            <Sliders className="w-5 h-5" />
+          </div>
+          <div>
+            <h3 className="font-bold text-white text-xs group-hover:text-amber-300">My Portfolio</h3>
+            <p className="text-[11px] text-slate-400">{teachCount + learnCount} skills</p>
           </div>
         </Link>
       </div>
 
-      {/* Dynamic Skill Statistics */}
+      {/* Dynamic Statistics */}
       <div>
         <h2 className="text-xl font-bold text-white mb-6 flex items-center space-x-2">
-          <span>Your SkillSwap Statistics</span>
+          <span>SkillSwap Real-Time Analytics</span>
         </h2>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
           <MetricCard
             title="Skills You Teach"
             value={teachCount}
             icon={GraduationCap}
-            badgeText="Live"
+            badgeText="Portfolio"
             color="emerald"
           />
           <MetricCard
-            title="Skills You Want to Learn"
+            title="Skills You Learn"
             value={learnCount}
             icon={BookOpen}
-            badgeText="Live"
+            badgeText="Portfolio"
             color="indigo"
           />
           <MetricCard
-            title="Active Matches"
-            value={0}
-            icon={Users}
-            badgeText="Phase 3"
+            title="Potential Matches"
+            value={matchCount}
+            icon={Sparkles}
+            badgeText="Algorithm"
+            color="purple"
+          />
+          <MetricCard
+            title="Pending Requests"
+            value={pendingCount}
+            icon={Inbox}
+            badgeText="Requests"
             color="amber"
           />
           <MetricCard
-            title="Completed Sessions"
-            value={0}
-            icon={CheckCircle2}
-            badgeText="Phase 3"
+            title="Active Exchanges"
+            value={activeExchangeCount}
+            icon={Repeat}
+            badgeText="Accepted"
             color="sky"
           />
         </div>
       </div>
 
-      {/* Profile & Skill Setup Prompt Cards */}
+      {/* Action Prompts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         <div className="p-8 rounded-3xl bg-slate-800/40 border border-slate-700/60 backdrop-blur-md flex flex-col justify-between space-y-6">
           <div>
-            <div className="w-12 h-12 rounded-2xl bg-emerald-600/20 border border-emerald-500/30 flex items-center justify-center text-emerald-400 mb-4">
-              <GraduationCap className="w-6 h-6" />
+            <div className="w-12 h-12 rounded-2xl bg-indigo-600/20 border border-indigo-500/30 flex items-center justify-center text-indigo-400 mb-4">
+              <Sparkles className="w-6 h-6" />
             </div>
-            <h3 className="text-xl font-bold text-white mb-2">Build Your Skill Portfolio</h3>
+            <h3 className="text-xl font-bold text-white mb-2">Smart Skill Matching</h3>
             <p className="text-slate-400 text-sm leading-relaxed">
-              Add skills you can teach and skills you are eager to learn. The more skills you list, the easier it is for compatible swappers to find you.
+              Our matching system analyzes your skills to teach and skills to learn against other community swappers to compute deterministic match percentages.
             </p>
           </div>
 
           <div className="pt-4 border-t border-slate-700/50 flex items-center justify-between">
-            <span className="text-xs text-slate-400">Total Listed: <strong className="text-emerald-400">{teachCount + learnCount} Skills</strong></span>
+            <span className="text-xs text-slate-400">Available: <strong className="text-indigo-400">{matchCount} Matches</strong></span>
             <Link
-              to="/my-skills"
-              className="text-sm font-semibold text-emerald-400 hover:text-emerald-300 flex items-center space-x-1"
+              to="/matches"
+              className="text-sm font-semibold text-indigo-400 hover:text-indigo-300 flex items-center space-x-1"
             >
-              <span>Manage Portfolio</span>
+              <span>Explore Matches</span>
               <ArrowRight className="w-4 h-4" />
             </Link>
           </div>
@@ -176,22 +218,22 @@ const DashboardPage = () => {
 
         <div className="p-8 rounded-3xl bg-slate-800/40 border border-slate-700/60 backdrop-blur-md flex flex-col justify-between space-y-6">
           <div>
-            <div className="w-12 h-12 rounded-2xl bg-indigo-600/20 border border-indigo-500/30 flex items-center justify-center text-indigo-400 mb-4">
-              <UserCheck className="w-6 h-6" />
+            <div className="w-12 h-12 rounded-2xl bg-emerald-600/20 border border-emerald-500/30 flex items-center justify-center text-emerald-400 mb-4">
+              <Repeat className="w-6 h-6" />
             </div>
-            <h3 className="text-xl font-bold text-white mb-2">User Profile & Bio</h3>
+            <h3 className="text-xl font-bold text-white mb-2">Exchange Requests & Partnerships</h3>
             <p className="text-slate-400 text-sm leading-relaxed">
-              Personalize your public profile avatar and bio so peers learn more about your background and interests.
+              Send requests to your top skill matches, accept incoming proposals, and track active skill exchange partnerships.
             </p>
           </div>
 
           <div className="pt-4 border-t border-slate-700/50 flex items-center justify-between">
-            <span className="text-xs text-slate-400">Signed in as <strong className="text-white">{user?.name}</strong></span>
+            <span className="text-xs text-slate-400">Active Partnerships: <strong className="text-emerald-400">{activeExchangeCount}</strong></span>
             <Link
-              to="/profile"
-              className="text-sm font-semibold text-indigo-400 hover:text-indigo-300 flex items-center space-x-1"
+              to="/exchange-requests"
+              className="text-sm font-semibold text-emerald-400 hover:text-emerald-300 flex items-center space-x-1"
             >
-              <span>Edit Profile</span>
+              <span>View Requests</span>
               <ArrowRight className="w-4 h-4" />
             </Link>
           </div>

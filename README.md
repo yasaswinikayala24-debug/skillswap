@@ -9,7 +9,7 @@ SkillSwap is a peer-to-peer skill exchange platform designed to connect individu
 ### Phase 1: Foundation & Authentication
 * **Modern Landing Page**: High-converting, responsive landing page with Hero, How It Works, Why SkillSwap, Popular Skills, Call to Action, and Footer.
 * **User Registration & Authentication**: Client-side validation, duplicate email detection, password hashing (`bcryptjs`), and JWT authentication.
-* **Protected Routing**: Navigation guards ensuring private pages (`/dashboard`, `/profile`, `/my-skills`) require authentication.
+* **Protected Routing**: Navigation guards ensuring private pages (`/dashboard`, `/profile`, `/my-skills`, `/matches`, `/exchange-requests`, `/my-exchanges`) require authentication.
 * **User Profile**: Profile page allowing users to view & update Name, Bio, and Profile Avatar URL with MongoDB persistence.
 
 ### Phase 2: Skill Management & Skill Discovery
@@ -17,18 +17,40 @@ SkillSwap is a peer-to-peer skill exchange platform designed to connect individu
   * **Skills I Can Teach**: Add skills you know with proficiency levels (`Beginner`, `Intermediate`, `Advanced`, `Expert`).
   * **Skills I Want to Learn**: Add target learning skills with proficiency levels.
   * **Skill Operations**: Add skills via search or custom creation, edit proficiency level, remove skills with confirmation dialogs.
-* **Skill Discovery (`/skills`)**:
-  * Search skills by name or keyword.
-  * Filter skills by 17 predefined categories (`Programming`, `Web Development`, `Data Science`, `UI/UX Design`, `Languages`, etc.).
-  * Displays swapper count and teacher/learner statistics for each skill card.
-* **Find People (`/find-people`)**:
-  * Discover community members teaching or learning specific skills.
-  * Filter swappers by skill name, user name, or bio keywords.
-* **Public User Profiles (`/user/:id`)**:
-  * Shareable public profile displaying user bio, role, skills they can teach, and skills they want to learn (excluding passwords and private tokens).
-* **Dynamic Dashboard (`/dashboard`)**:
-  * Live statistics showing the user's total teaching and learning skill counts.
-  * Quick navigation action links to manage skills, explore categories, and find swappers.
+* **Skill Discovery (`/skills`)**: Search skills by name, keyword, or filter by 17 categories.
+* **Find People (`/find-people`)**: Discover community members teaching or learning specific skills.
+* **Public User Profiles (`/user/:id`)**: Shareable public profile displaying user bio, role, and skills.
+
+### Phase 3: Smart Skill Matching & Skill Exchange Requests
+* **Smart Matching Engine (`/matches`)**:
+  * **Deterministic Scoring Algorithm**: Calculates match percentage based on two-way and one-way skill overlap between users.
+  * **Match Categories**: `Strong Match` (80–100%), `Good Match` (60–79%), `Possible Match` (40–59%), `Low Match` (1–39%).
+  * **Two-Way Match Recognition**: Identifies mutual exchange opportunities where User A teaches User B and User B teaches User A.
+  * **Match Filtering & Sorting**: Filter matches by min match percentage, category, or match type, and sort by highest match percentage or recently joined.
+* **Match Breakdown View (`/matches/:userId`)**: Detailed side-by-side comparison of teaching vs learning skills with match score gauge and direct exchange request trigger.
+* **Exchange Request Workflow (`/exchange-requests`)**:
+  * **Send Request**: Select offered skill from your teaching portfolio and requested skill from receiver's portfolio, with a personal message up to 500 characters.
+  * **Received Requests**: Review incoming proposals with `Accept` and `Reject` actions.
+  * **Sent Requests**: Track sent requests with live status badges (`Pending`, `Accepted`, `Rejected`, `Cancelled`) and `Cancel` action.
+  * **Request Validation**: Prevents self-requests, duplicate pending requests, or invalid skill selections.
+* **Active Skill Exchanges (`/my-exchanges`)**: View accepted peer-to-peer exchange partnerships with swapper details and trade skills.
+* **Real-Time Analytics & Badging**:
+  * Dashboard displays live metrics for `Potential Matches`, `Pending Requests`, and `Active Exchanges`.
+  * Navbar displays dynamic pending request badge (e.g. `Requests (3)`).
+
+---
+
+## 📐 Matching Algorithm Explanation
+
+The matching utility (`backend/utils/matchingAlgorithm.js`) computes deterministic match scores:
+
+1. **Forward Match Check**: Identifies skills User A wants to learn that User B teaches (`skillsYouCanLearn`).
+2. **Reverse Match Check**: Identifies skills User A teaches that User B wants to learn (`skillsYouCanTeach`).
+3. **Scoring Formula**:
+   - **Two-Way Match (Mutual)**: Base score of `80%` + `10%` per additional matching skill up to `100%`.
+   - **One-Way Match (A learns from B)**: Base score of `50%` + `10%` per additional skill up to `75%`.
+   - **One-Way Match (A teaches B)**: Base score of `40%` + `10%` per additional skill up to `60%`.
+   - **No Overlap**: `0%`.
 
 ---
 
@@ -36,7 +58,7 @@ SkillSwap is a peer-to-peer skill exchange platform designed to connect individu
 
 ### Frontend
 * **Framework**: React.js (via Vite)
-* **Styling**: Tailwind CSS v4 + Glassmorphic design system
+* **Styling**: Tailwind CSS v4 + Glassmorphic UI design system
 * **Routing**: React Router DOM (v6)
 * **Icons**: Lucide React
 
@@ -54,57 +76,54 @@ SkillSwap is a peer-to-peer skill exchange platform designed to connect individu
 SkillSwap/
 │
 ├── frontend/
-│   ├── public/
 │   ├── src/
 │   │   ├── components/
 │   │   │   ├── AddSkillModal.jsx
 │   │   │   ├── Alert.jsx
 │   │   │   ├── ConfirmDeleteModal.jsx
 │   │   │   ├── EditSkillModal.jsx
+│   │   │   ├── ExchangeRequestModal.jsx
 │   │   │   ├── Footer.jsx
 │   │   │   ├── LoadingSpinner.jsx
+│   │   │   ├── MatchCard.jsx
 │   │   │   ├── MetricCard.jsx
 │   │   │   ├── Navbar.jsx
 │   │   │   ├── ProtectedRoute.jsx
 │   │   │   ├── PublicRoute.jsx
+│   │   │   ├── RequestStatusBadge.jsx
 │   │   │   ├── SkillBadge.jsx
 │   │   │   ├── SkillCard.jsx
 │   │   │   └── UserSkillCard.jsx
 │   │   ├── pages/
+│   │   │   ├── ActiveExchanges.jsx
 │   │   │   ├── DashboardPage.jsx
+│   │   │   ├── ExchangeRequests.jsx
 │   │   │   ├── FindPeople.jsx
 │   │   │   ├── LandingPage.jsx
 │   │   │   ├── LoginPage.jsx
+│   │   │   ├── MatchDetails.jsx
+│   │   │   ├── Matches.jsx
 │   │   │   ├── MySkills.jsx
 │   │   │   ├── NotFoundPage.jsx
 │   │   │   ├── ProfilePage.jsx
 │   │   │   ├── PublicUserProfile.jsx
 │   │   │   ├── RegisterPage.jsx
 │   │   │   └── Skills.jsx
-│   │   ├── layouts/
-│   │   │   └── MainLayout.jsx
 │   │   ├── services/
 │   │   │   └── api.js
 │   │   ├── context/
 │   │   │   └── AuthContext.jsx
-│   │   ├── hooks/
-│   │   │   └── useAuth.js
-│   │   ├── utils/
-│   │   │   └── validators.js
-│   │   ├── App.jsx
-│   │   ├── main.jsx
-│   │   └── index.css
-│   │
-│   ├── .env
-│   ├── .env.example
-│   ├── vite.config.js
-│   └── package.json
+│   │   └── App.jsx
+│   ├── package.json
+│   └── vite.config.js
 │
 ├── backend/
 │   ├── config/
 │   │   └── db.js
 │   ├── controllers/
 │   │   ├── authController.js
+│   │   ├── exchangeRequestController.js
+│   │   ├── matchController.js
 │   │   ├── skillController.js
 │   │   ├── userController.js
 │   │   └── userSkillController.js
@@ -112,18 +131,20 @@ SkillSwap/
 │   │   ├── authMiddleware.js
 │   │   └── errorMiddleware.js
 │   ├── models/
+│   │   ├── ExchangeRequest.js
 │   │   ├── Skill.js
 │   │   └── User.js
 │   ├── routes/
 │   │   ├── authRoutes.js
+│   │   ├── exchangeRequestRoutes.js
+│   │   ├── matchRoutes.js
 │   │   ├── skillRoutes.js
 │   │   └── userRoutes.js
 │   ├── utils/
 │   │   ├── generateToken.js
+│   │   ├── matchingAlgorithm.js
 │   │   └── seedSkills.js
 │   ├── server.js
-│   ├── .env
-│   ├── .env.example
 │   └── package.json
 │
 ├── api/
@@ -149,16 +170,12 @@ SkillSwap/
 | `GET` | `/api/users/profile` | Private | Retrieve private user profile |
 | `PUT` | `/api/users/profile` | Private | Update user Name, Bio, & Profile Image |
 
-#### Skill Directory
+#### Skill Directory & User Skills
 | Method | Endpoint | Protection | Description |
 | :--- | :--- | :--- | :--- |
-| `GET` | `/api/skills` | Public | List skills with search (`?search=`) and category (`?category=`) |
+| `GET` | `/api/skills` | Public | List skills with search & category filter |
 | `GET` | `/api/skills/:id` | Public | Retrieve single skill details |
 | `POST` | `/api/skills` | Public/Private | Create a new skill in directory |
-
-#### User Skill Management & Discovery
-| Method | Endpoint | Protection | Description |
-| :--- | :--- | :--- | :--- |
 | `GET` | `/api/users/me/skills` | Private | Get user's `skillsToTeach` & `skillsToLearn` |
 | `POST` | `/api/users/me/skills/teach` | Private | Add skill to `skillsToTeach` |
 | `POST` | `/api/users/me/skills/learn` | Private | Add skill to `skillsToLearn` |
@@ -166,8 +183,22 @@ SkillSwap/
 | `PUT` | `/api/users/me/skills/learn/:skillId` | Private | Update learning skill level |
 | `DELETE` | `/api/users/me/skills/teach/:skillId` | Private | Delete teaching skill |
 | `DELETE` | `/api/users/me/skills/learn/:skillId` | Private | Delete learning skill |
-| `GET` | `/api/users/search` | Public | Search swappers by skill or name (`?skill=`) |
-| `GET` | `/api/users/:id` | Public | View public user profile with teach/learn skills |
+| `GET` | `/api/users/search` | Public | Search swappers by skill or name |
+| `GET` | `/api/users/:id` | Public | View public user profile |
+
+#### Smart Matching & Exchange Requests (Phase 3)
+| Method | Endpoint | Protection | Description |
+| :--- | :--- | :--- | :--- |
+| `GET` | `/api/matches` | Private | Get recommended matches sorted by match percentage |
+| `GET` | `/api/matches/:userId` | Private | Get detailed match breakdown between current & target user |
+| `POST` | `/api/exchange-requests` | Private | Send a new skill exchange request |
+| `GET` | `/api/exchange-requests/received` | Private | List received exchange requests |
+| `GET` | `/api/exchange-requests/sent` | Private | List sent exchange requests |
+| `GET` | `/api/exchange-requests/pending-count` | Private | Get count of pending received requests |
+| `PUT` | `/api/exchange-requests/:id/accept` | Private | Accept an exchange request |
+| `PUT` | `/api/exchange-requests/:id/reject` | Private | Reject an exchange request |
+| `PUT` | `/api/exchange-requests/:id/cancel` | Private | Cancel a sent request |
+| `GET` | `/api/exchange-requests/active` | Private | List accepted active skill exchanges |
 
 ---
 

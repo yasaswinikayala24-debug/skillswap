@@ -5,6 +5,8 @@ const connectDB = require('./config/db');
 const authRoutes = require('./routes/authRoutes');
 const userRoutes = require('./routes/userRoutes');
 const skillRoutes = require('./routes/skillRoutes');
+const matchRoutes = require('./routes/matchRoutes');
+const exchangeRequestRoutes = require('./routes/exchangeRequestRoutes');
 const { notFound, errorHandler } = require('./middleware/errorMiddleware');
 const seedInitialSkills = require('./utils/seedSkills');
 
@@ -48,6 +50,8 @@ app.get('/api/health', (req, res) => {
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/skills', skillRoutes);
+app.use('/api/matches', matchRoutes);
+app.use('/api/exchange-requests', exchangeRequestRoutes);
 
 // Centralized Error Handling Middleware
 app.use(notFound);
