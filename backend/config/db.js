@@ -6,11 +6,12 @@ if (!cached) {
 }
 
 const connectDB = async () => {
-  if (cached.conn) {
-    return cached.conn;
+  // If already connected, return existing connection
+  if (mongoose.connection && mongoose.connection.readyState === 1) {
+    return mongoose.connection;
   }
 
-  let mongoUri = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/skillswap';
+  let mongoUri = process.env.MONGODB_URI || 'mongodb+srv://yasaswinikayala24_db_user:2VvR57qNVoD87Ynp@cluster0.m6qblny.mongodb.net/skillswap?retryWrites=true&w=majority';
   const forceInMemory = process.env.USE_IN_MEMORY_DB === 'true';
 
   if (forceInMemory) {
@@ -20,10 +21,10 @@ const connectDB = async () => {
     mongoUri = mongoServer.getUri();
   }
 
-  if (!cached.promise) {
+  if (!cached.promise || mongoose.connection.readyState === 0) {
     const opts = {
-      bufferCommands: false,
-      serverSelectionTimeoutMS: 5000
+      serverSelectionTimeoutMS: 15000,
+      connectTimeoutMS: 15000
     };
 
     cached.promise = mongoose.connect(mongoUri, opts).then((mongooseInstance) => {
@@ -31,6 +32,7 @@ const connectDB = async () => {
       return mongooseInstance;
     }).catch(err => {
       cached.promise = null;
+      console.error('MongoDB Connection Error:', err.message);
       throw err;
     });
   }
