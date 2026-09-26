@@ -1,5 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import { ConstellationField } from '../shaders/constellation-field/ConstellationField';
+import '../shaders/threeui.css';
 import {
   Sparkles,
   ArrowRight,
@@ -55,7 +57,22 @@ const LandingPage = () => {
   ];
 
   return (
-    <div className="space-y-24 pb-20">
+    <div className="relative space-y-24 pb-20 min-h-screen">
+      {/* Background Animated Constellation Field Wallpaper (Landing Page Only) */}
+      <div className="fixed inset-0 pointer-events-none z-0 opacity-50">
+        <ConstellationField
+          mode="dark"
+          speed={1.00}
+          size={1.00}
+          strokeWidth={1.00}
+          length={1.00}
+          density={1.00}
+          opacity={1.00}
+          hue={0}
+          saturation={1.00}
+          brightness={1.00}
+        />
+      </div>
       {/* Hero Section */}
       <section className="relative pt-16 pb-12 overflow-hidden">
         {/* Glow background elements */}
