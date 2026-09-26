@@ -4,7 +4,9 @@ const dotenv = require('dotenv');
 const connectDB = require('./config/db');
 const authRoutes = require('./routes/authRoutes');
 const userRoutes = require('./routes/userRoutes');
+const skillRoutes = require('./routes/skillRoutes');
 const { notFound, errorHandler } = require('./middleware/errorMiddleware');
+const seedInitialSkills = require('./utils/seedSkills');
 
 // Load env variables
 dotenv.config();
@@ -23,6 +25,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use(async (req, res, next) => {
   try {
     await connectDB();
+    await seedInitialSkills();
     next();
   } catch (err) {
     console.error('Database Connection Middleware Error:', err.message);
@@ -44,6 +47,7 @@ app.get('/api/health', (req, res) => {
 // API Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
+app.use('/api/skills', skillRoutes);
 
 // Centralized Error Handling Middleware
 app.use(notFound);
@@ -52,7 +56,8 @@ app.use(errorHandler);
 // Standalone server execution for local development
 if (require.main === module) {
   const PORT = process.env.PORT || 5000;
-  connectDB().then(() => {
+  connectDB().then(async () => {
+    await seedInitialSkills();
     app.listen(PORT, () => {
       console.log(`========================================`);
       console.log(`🚀 SkillSwap Server running on port ${PORT}`);

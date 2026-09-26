@@ -1,6 +1,22 @@
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 
+const skillItemSchema = new mongoose.Schema(
+  {
+    skill: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Skill',
+      required: true
+    },
+    level: {
+      type: String,
+      enum: ['Beginner', 'Intermediate', 'Advanced', 'Expert'],
+      default: 'Intermediate'
+    }
+  },
+  { _id: false }
+);
+
 const userSchema = new mongoose.Schema(
   {
     name: {
@@ -37,7 +53,9 @@ const userSchema = new mongoose.Schema(
       type: String,
       enum: ['student', 'admin'],
       default: 'student'
-    }
+    },
+    skillsToTeach: [skillItemSchema],
+    skillsToLearn: [skillItemSchema]
   },
   {
     timestamps: true

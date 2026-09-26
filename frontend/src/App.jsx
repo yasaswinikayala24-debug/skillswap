@@ -10,6 +10,10 @@ import RegisterPage from './pages/RegisterPage';
 import LoginPage from './pages/LoginPage';
 import DashboardPage from './pages/DashboardPage';
 import ProfilePage from './pages/ProfilePage';
+import MySkills from './pages/MySkills';
+import Skills from './pages/Skills';
+import FindPeople from './pages/FindPeople';
+import PublicUserProfile from './pages/PublicUserProfile';
 import NotFoundPage from './pages/NotFoundPage';
 
 function App() {
@@ -21,7 +25,7 @@ function App() {
             {/* Public Landing Route */}
             <Route path="/" element={<LandingPage />} />
 
-            {/* Auth Public Routes (Redirect to /dashboard if logged in) */}
+            {/* Auth Public Routes */}
             <Route
               path="/register"
               element={
@@ -39,7 +43,7 @@ function App() {
               }
             />
 
-            {/* Protected Routes (Redirect to /login if logged out) */}
+            {/* Protected User Routes */}
             <Route
               path="/dashboard"
               element={
@@ -56,6 +60,19 @@ function App() {
                 </ProtectedRoute>
               }
             />
+            <Route
+              path="/my-skills"
+              element={
+                <ProtectedRoute>
+                  <MySkills />
+                </ProtectedRoute>
+              }
+            />
+
+            {/* Skill & Swapper Discovery Routes */}
+            <Route path="/skills" element={<Skills />} />
+            <Route path="/find-people" element={<FindPeople />} />
+            <Route path="/user/:id" element={<PublicUserProfile />} />
 
             {/* Fallback 404 Route */}
             <Route path="*" element={<NotFoundPage />} />

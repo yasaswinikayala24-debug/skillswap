@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import useAuth from '../hooks/useAuth';
+import { userAPI } from '../services/api';
 import MetricCard from '../components/MetricCard';
 import {
   BookOpen,
@@ -10,100 +11,182 @@ import {
   UserCheck,
   Sparkles,
   ArrowRight,
-  Clock,
-  Compass
+  Compass,
+  Sliders
 } from 'lucide-react';
 
 const DashboardPage = () => {
-  const { user } = useAuth();
+  const { user, token } = useAuth();
+
+  const [teachCount, setTeachCount] = useState(0);
+  const [learnCount, setLearnCount] = useState(0);
+
+  useEffect(() => {
+    fetchSkillCounts();
+  }, [token]);
+
+  const fetchSkillCounts = async () => {
+    try {
+      const res = await userAPI.getMySkills(token);
+      if (res.success && res.data) {
+        setTeachCount(res.data.skillsToTeach?.length || 0);
+        setLearnCount(res.data.skillsToLearn?.length || 0);
+      }
+    } catch (err) {
+      console.error('Error fetching dashboard skill counts:', err);
+    }
+  };
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-10">
       {/* Header Banner */}
       <div className="relative rounded-3xl bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 p-8 sm:p-10 border border-slate-800 shadow-2xl overflow-hidden">
-        {/* Glow */}
         <div className="absolute top-0 right-0 w-80 h-80 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none"></div>
 
         <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div>
             <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-xs font-semibold uppercase tracking-wider mb-3">
               <Sparkles className="w-3.5 h-3.5" />
-              <span>Phase 1 Foundation</span>
+              <span>Phase 2 Skill Management</span>
             </div>
             <h1 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">
               Welcome, {user?.name || 'Swapper'} 👋
             </h1>
             <p className="mt-2 text-slate-300 text-base max-w-xl">
-              Your SkillSwap Dashboard is ready. Start by completing your user profile to get set up for skill matching in Phase 2.
+              Your SkillSwap Dashboard is live! Manage skills you can teach, discover skills to learn, and connect with swapper peers.
             </p>
           </div>
 
-          <Link
-            to="/profile"
-            className="inline-flex items-center justify-center space-x-2 px-6 py-3.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-sm shadow-xl shadow-indigo-600/30 transition-all hover:shadow-indigo-500/40 shrink-0"
-          >
-            <UserCheck className="w-4 h-4" />
-            <span>Complete Your Profile</span>
-            <ArrowRight className="w-4 h-4" />
-          </Link>
+          <div className="flex flex-col sm:flex-row gap-3">
+            <Link
+              to="/my-skills"
+              className="inline-flex items-center justify-center space-x-2 px-6 py-3.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-sm shadow-xl shadow-indigo-600/30 transition-all hover:shadow-indigo-500/40 shrink-0"
+            >
+              <Sliders className="w-4 h-4" />
+              <span>Manage My Skills</span>
+            </Link>
+          </div>
         </div>
       </div>
 
-      {/* Overview Title */}
+      {/* Quick Action Navigation Grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <Link
+          to="/my-skills"
+          className="p-5 rounded-2xl bg-slate-800/40 border border-slate-700/60 hover:border-indigo-500/50 transition-all flex items-center space-x-4 group"
+        >
+          <div className="p-3 rounded-xl bg-indigo-500/20 text-indigo-400 group-hover:scale-110 transition-transform">
+            <GraduationCap className="w-6 h-6" />
+          </div>
+          <div>
+            <h3 className="font-bold text-white text-sm group-hover:text-indigo-300">My Skill Portfolio</h3>
+            <p className="text-xs text-slate-400">Add or edit your skills</p>
+          </div>
+        </Link>
+
+        <Link
+          to="/skills"
+          className="p-5 rounded-2xl bg-slate-800/40 border border-slate-700/60 hover:border-indigo-500/50 transition-all flex items-center space-x-4 group"
+        >
+          <div className="p-3 rounded-xl bg-purple-500/20 text-purple-400 group-hover:scale-110 transition-transform">
+            <Compass className="w-6 h-6" />
+          </div>
+          <div>
+            <h3 className="font-bold text-white text-sm group-hover:text-purple-300">Explore Skills</h3>
+            <p className="text-xs text-slate-400">Browse categories & topics</p>
+          </div>
+        </Link>
+
+        <Link
+          to="/find-people"
+          className="p-5 rounded-2xl bg-slate-800/40 border border-slate-700/60 hover:border-indigo-500/50 transition-all flex items-center space-x-4 group"
+        >
+          <div className="p-3 rounded-xl bg-emerald-500/20 text-emerald-400 group-hover:scale-110 transition-transform">
+            <Users className="w-6 h-6" />
+          </div>
+          <div>
+            <h3 className="font-bold text-white text-sm group-hover:text-emerald-300">Find Swappers</h3>
+            <p className="text-xs text-slate-400">Search peers by skill</p>
+          </div>
+        </Link>
+      </div>
+
+      {/* Dynamic Skill Statistics */}
       <div>
         <h2 className="text-xl font-bold text-white mb-6 flex items-center space-x-2">
-          <span>Your SkillSwap Dashboard Overview</span>
+          <span>Your SkillSwap Statistics</span>
         </h2>
 
-        {/* 4 Metric Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           <MetricCard
             title="Skills You Teach"
-            value={0}
+            value={teachCount}
             icon={GraduationCap}
-            badgeText="Phase 2"
-            color="indigo"
+            badgeText="Live"
+            color="emerald"
           />
           <MetricCard
             title="Skills You Want to Learn"
-            value={0}
+            value={learnCount}
             icon={BookOpen}
-            badgeText="Phase 2"
-            color="emerald"
+            badgeText="Live"
+            color="indigo"
           />
           <MetricCard
             title="Active Matches"
             value={0}
             icon={Users}
-            badgeText="Phase 2"
+            badgeText="Phase 3"
             color="amber"
           />
           <MetricCard
             title="Completed Sessions"
             value={0}
             icon={CheckCircle2}
-            badgeText="Phase 2"
+            badgeText="Phase 3"
             color="sky"
           />
         </div>
       </div>
 
-      {/* Feature Preview & Empty State Cards */}
+      {/* Profile & Skill Setup Prompt Cards */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* Profile Card */}
+        <div className="p-8 rounded-3xl bg-slate-800/40 border border-slate-700/60 backdrop-blur-md flex flex-col justify-between space-y-6">
+          <div>
+            <div className="w-12 h-12 rounded-2xl bg-emerald-600/20 border border-emerald-500/30 flex items-center justify-center text-emerald-400 mb-4">
+              <GraduationCap className="w-6 h-6" />
+            </div>
+            <h3 className="text-xl font-bold text-white mb-2">Build Your Skill Portfolio</h3>
+            <p className="text-slate-400 text-sm leading-relaxed">
+              Add skills you can teach and skills you are eager to learn. The more skills you list, the easier it is for compatible swappers to find you.
+            </p>
+          </div>
+
+          <div className="pt-4 border-t border-slate-700/50 flex items-center justify-between">
+            <span className="text-xs text-slate-400">Total Listed: <strong className="text-emerald-400">{teachCount + learnCount} Skills</strong></span>
+            <Link
+              to="/my-skills"
+              className="text-sm font-semibold text-emerald-400 hover:text-emerald-300 flex items-center space-x-1"
+            >
+              <span>Manage Portfolio</span>
+              <ArrowRight className="w-4 h-4" />
+            </Link>
+          </div>
+        </div>
+
         <div className="p-8 rounded-3xl bg-slate-800/40 border border-slate-700/60 backdrop-blur-md flex flex-col justify-between space-y-6">
           <div>
             <div className="w-12 h-12 rounded-2xl bg-indigo-600/20 border border-indigo-500/30 flex items-center justify-center text-indigo-400 mb-4">
               <UserCheck className="w-6 h-6" />
             </div>
-            <h3 className="text-xl font-bold text-white mb-2">Complete Your Profile</h3>
+            <h3 className="text-xl font-bold text-white mb-2">User Profile & Bio</h3>
             <p className="text-slate-400 text-sm leading-relaxed">
-              Add a custom bio and profile avatar URL to personalize your identity. A completed profile makes it easier for compatible skill partners to match with you.
+              Personalize your public profile avatar and bio so peers learn more about your background and interests.
             </p>
           </div>
 
           <div className="pt-4 border-t border-slate-700/50 flex items-center justify-between">
-            <span className="text-xs text-slate-400">Account status: <strong className="text-emerald-400">Active</strong></span>
+            <span className="text-xs text-slate-400">Signed in as <strong className="text-white">{user?.name}</strong></span>
             <Link
               to="/profile"
               className="text-sm font-semibold text-indigo-400 hover:text-indigo-300 flex items-center space-x-1"
@@ -111,26 +194,6 @@ const DashboardPage = () => {
               <span>Edit Profile</span>
               <ArrowRight className="w-4 h-4" />
             </Link>
-          </div>
-        </div>
-
-        {/* Phase 2 Coming Soon Card */}
-        <div className="p-8 rounded-3xl bg-slate-800/40 border border-slate-700/60 backdrop-blur-md flex flex-col justify-between space-y-6">
-          <div>
-            <div className="w-12 h-12 rounded-2xl bg-purple-600/20 border border-purple-500/30 flex items-center justify-center text-purple-400 mb-4">
-              <Compass className="w-6 h-6" />
-            </div>
-            <h3 className="text-xl font-bold text-white mb-2">Skill Exchange Features Coming in Phase 2</h3>
-            <p className="text-slate-400 text-sm leading-relaxed">
-              In the upcoming phase, you will be able to list specific skills you want to teach or learn, browse available swappers in the directory, and schedule interactive learning sessions.
-            </p>
-          </div>
-
-          <div className="pt-4 border-t border-slate-700/50 flex items-center justify-between text-xs text-slate-400">
-            <div className="flex items-center space-x-1 text-slate-400">
-              <Clock className="w-4 h-4 text-purple-400" />
-              <span>Phase 1 Authentication & Profile fully functional</span>
-            </div>
           </div>
         </div>
       </div>

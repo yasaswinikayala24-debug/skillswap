@@ -1,7 +1,18 @@
 import React, { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
-import { Repeat, LayoutDashboard, User, LogOut, Menu, X, ArrowRight } from 'lucide-react';
+import {
+  Repeat,
+  LayoutDashboard,
+  Sliders,
+  Compass,
+  Users,
+  User,
+  LogOut,
+  Menu,
+  X,
+  ArrowRight
+} from 'lucide-react';
 
 const Navbar = () => {
   const { user, isAuthenticated, logout } = useAuth();
@@ -40,12 +51,12 @@ const Navbar = () => {
           </Link>
 
           {/* Desktop Navigation Links */}
-          <div className="hidden md:flex items-center space-x-6">
+          <div className="hidden md:flex items-center space-x-2">
             {!isAuthenticated ? (
               <>
                 <Link
                   to="/"
-                  className={`text-sm font-medium transition-colors ${
+                  className={`text-sm font-medium px-3 py-2 rounded-lg transition-colors ${
                     isActive('/') ? 'text-indigo-400 font-semibold' : 'text-slate-300 hover:text-white'
                   }`}
                 >
@@ -53,7 +64,7 @@ const Navbar = () => {
                 </Link>
                 <Link
                   to="/login"
-                  className={`text-sm font-medium transition-colors ${
+                  className={`text-sm font-medium px-3 py-2 rounded-lg transition-colors ${
                     isActive('/login') ? 'text-indigo-400 font-semibold' : 'text-slate-300 hover:text-white'
                   }`}
                 >
@@ -61,7 +72,7 @@ const Navbar = () => {
                 </Link>
                 <Link
                   to="/register"
-                  className="inline-flex items-center space-x-2 text-sm font-semibold px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white shadow-lg shadow-indigo-600/30 transition-all hover:shadow-indigo-500/40 active:scale-95"
+                  className="inline-flex items-center space-x-2 text-sm font-semibold px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white shadow-lg shadow-indigo-600/30 transition-all hover:shadow-indigo-500/40 active:scale-95 ml-2"
                 >
                   <span>Get Started</span>
                   <ArrowRight className="w-4 h-4" />
@@ -71,20 +82,57 @@ const Navbar = () => {
               <>
                 <Link
                   to="/dashboard"
-                  className={`flex items-center space-x-2 text-sm font-medium px-3 py-2 rounded-lg transition-colors ${
+                  className={`flex items-center space-x-1.5 text-xs font-semibold px-3 py-2 rounded-lg transition-colors ${
                     isActive('/dashboard')
-                      ? 'bg-indigo-600/20 text-indigo-400 border border-indigo-500/30 font-semibold'
+                      ? 'bg-indigo-600/20 text-indigo-400 border border-indigo-500/30 font-bold'
                       : 'text-slate-300 hover:bg-slate-800 hover:text-white'
                   }`}
                 >
                   <LayoutDashboard className="w-4 h-4" />
                   <span>Dashboard</span>
                 </Link>
+
+                <Link
+                  to="/my-skills"
+                  className={`flex items-center space-x-1.5 text-xs font-semibold px-3 py-2 rounded-lg transition-colors ${
+                    isActive('/my-skills')
+                      ? 'bg-indigo-600/20 text-indigo-400 border border-indigo-500/30 font-bold'
+                      : 'text-slate-300 hover:bg-slate-800 hover:text-white'
+                  }`}
+                >
+                  <Sliders className="w-4 h-4" />
+                  <span>My Skills</span>
+                </Link>
+
+                <Link
+                  to="/skills"
+                  className={`flex items-center space-x-1.5 text-xs font-semibold px-3 py-2 rounded-lg transition-colors ${
+                    isActive('/skills')
+                      ? 'bg-indigo-600/20 text-indigo-400 border border-indigo-500/30 font-bold'
+                      : 'text-slate-300 hover:bg-slate-800 hover:text-white'
+                  }`}
+                >
+                  <Compass className="w-4 h-4" />
+                  <span>Explore Skills</span>
+                </Link>
+
+                <Link
+                  to="/find-people"
+                  className={`flex items-center space-x-1.5 text-xs font-semibold px-3 py-2 rounded-lg transition-colors ${
+                    isActive('/find-people')
+                      ? 'bg-indigo-600/20 text-indigo-400 border border-indigo-500/30 font-bold'
+                      : 'text-slate-300 hover:bg-slate-800 hover:text-white'
+                  }`}
+                >
+                  <Users className="w-4 h-4" />
+                  <span>Find People</span>
+                </Link>
+
                 <Link
                   to="/profile"
-                  className={`flex items-center space-x-2 text-sm font-medium px-3 py-2 rounded-lg transition-colors ${
+                  className={`flex items-center space-x-1.5 text-xs font-semibold px-3 py-2 rounded-lg transition-colors ${
                     isActive('/profile')
-                      ? 'bg-indigo-600/20 text-indigo-400 border border-indigo-500/30 font-semibold'
+                      ? 'bg-indigo-600/20 text-indigo-400 border border-indigo-500/30 font-bold'
                       : 'text-slate-300 hover:bg-slate-800 hover:text-white'
                   }`}
                 >
@@ -92,7 +140,7 @@ const Navbar = () => {
                     <img
                       src={user.profileImage}
                       alt={user.name}
-                      className="w-5 h-5 rounded-full object-cover border border-indigo-500/40"
+                      className="w-4 h-4 rounded-full object-cover border border-indigo-500/40"
                       onError={(e) => { e.target.style.display = 'none'; }}
                     />
                   ) : (
@@ -100,9 +148,10 @@ const Navbar = () => {
                   )}
                   <span>Profile</span>
                 </Link>
+
                 <button
                   onClick={handleLogout}
-                  className="flex items-center space-x-2 text-sm font-medium px-3 py-2 rounded-lg text-slate-400 hover:text-red-400 hover:bg-red-500/10 transition-colors"
+                  className="flex items-center space-x-1.5 text-xs font-semibold px-3 py-2 rounded-lg text-slate-400 hover:text-red-400 hover:bg-red-500/10 transition-colors ml-1"
                 >
                   <LogOut className="w-4 h-4" />
                   <span>Logout</span>
@@ -111,7 +160,7 @@ const Navbar = () => {
             )}
           </div>
 
-          {/* Mobile Menu Button */}
+          {/* Mobile Menu Toggle Button */}
           <div className="flex md:hidden items-center">
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
@@ -126,7 +175,7 @@ const Navbar = () => {
 
       {/* Mobile Dropdown Menu */}
       {mobileMenuOpen && (
-        <div className="md:hidden border-b border-slate-800 bg-slate-900/95 backdrop-blur-xl px-4 pt-3 pb-6 space-y-3 animate-fadeIn">
+        <div className="md:hidden border-b border-slate-800 bg-slate-900/95 backdrop-blur-xl px-4 pt-3 pb-6 space-y-2 animate-fadeIn">
           {!isAuthenticated ? (
             <>
               <Link
@@ -162,31 +211,67 @@ const Navbar = () => {
                 <p className="text-sm font-semibold text-white truncate">{user?.name}</p>
                 <p className="text-xs text-slate-400 truncate">{user?.email}</p>
               </div>
+
               <Link
                 to="/dashboard"
                 onClick={() => setMobileMenuOpen(false)}
-                className={`flex items-center space-x-3 px-3 py-2.5 rounded-lg text-base font-medium ${
+                className={`flex items-center space-x-3 px-3 py-2.5 rounded-lg text-sm font-medium ${
                   isActive('/dashboard') ? 'bg-indigo-600/20 text-indigo-400 font-semibold' : 'text-slate-300 hover:bg-slate-800'
                 }`}
               >
-                <LayoutDashboard className="w-5 h-5" />
+                <LayoutDashboard className="w-4 h-4" />
                 <span>Dashboard</span>
               </Link>
+
+              <Link
+                to="/my-skills"
+                onClick={() => setMobileMenuOpen(false)}
+                className={`flex items-center space-x-3 px-3 py-2.5 rounded-lg text-sm font-medium ${
+                  isActive('/my-skills') ? 'bg-indigo-600/20 text-indigo-400 font-semibold' : 'text-slate-300 hover:bg-slate-800'
+                }`}
+              >
+                <Sliders className="w-4 h-4" />
+                <span>My Skills</span>
+              </Link>
+
+              <Link
+                to="/skills"
+                onClick={() => setMobileMenuOpen(false)}
+                className={`flex items-center space-x-3 px-3 py-2.5 rounded-lg text-sm font-medium ${
+                  isActive('/skills') ? 'bg-indigo-600/20 text-indigo-400 font-semibold' : 'text-slate-300 hover:bg-slate-800'
+                }`}
+              >
+                <Compass className="w-4 h-4" />
+                <span>Explore Skills</span>
+              </Link>
+
+              <Link
+                to="/find-people"
+                onClick={() => setMobileMenuOpen(false)}
+                className={`flex items-center space-x-3 px-3 py-2.5 rounded-lg text-sm font-medium ${
+                  isActive('/find-people') ? 'bg-indigo-600/20 text-indigo-400 font-semibold' : 'text-slate-300 hover:bg-slate-800'
+                }`}
+              >
+                <Users className="w-4 h-4" />
+                <span>Find People</span>
+              </Link>
+
               <Link
                 to="/profile"
                 onClick={() => setMobileMenuOpen(false)}
-                className={`flex items-center space-x-3 px-3 py-2.5 rounded-lg text-base font-medium ${
+                className={`flex items-center space-x-3 px-3 py-2.5 rounded-lg text-sm font-medium ${
                   isActive('/profile') ? 'bg-indigo-600/20 text-indigo-400 font-semibold' : 'text-slate-300 hover:bg-slate-800'
                 }`}
               >
-                <User className="w-5 h-5" />
+                <User className="w-4 h-4" />
                 <span>Profile</span>
               </Link>
+
               <button
                 onClick={handleLogout}
-                className="flex items-center space-x-3 w-full text-left px-3 py-2.5 rounded-lg text-base font-medium text-red-400 hover:bg-red-500/10"
+                className="flex items-center space-x-3 w-full text-left px-3 py-2.5 rounded-lg text-sm font-medium text-red-400 hover:bg-red-500/10"
               >
-                <LogOut className="w-5 h-5" />
+                <LogOut className="w-4 h-4" />
                 <span>Logout</span>
               </button>
             </>
